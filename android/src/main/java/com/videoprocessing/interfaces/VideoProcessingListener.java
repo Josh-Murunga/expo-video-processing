@@ -1,12 +1,12 @@
-package com.videotrim.interfaces;
+package com.videoprocessing.interfaces;
 
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
-import com.videotrim.enums.ErrorCode;
+import com.videoprocessing.enums.ErrorCode;
 
 import java.util.Map;
 
-public interface VideoTrimListener {
+public interface VideoProcessingListener {
   void onLoad(int duration);
   void onTrimmingProgress(int percentage);
   void onFinishTrim(String url, long startMs, long endMs, int videoDuration);

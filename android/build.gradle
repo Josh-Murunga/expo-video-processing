@@ -1,6 +1,6 @@
 buildscript {
   ext.getExtOrDefault = {name ->
-    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['VideoTrim_' + name]
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['VideoProcessing_' + name]
   }
 
   repositories {
@@ -24,15 +24,15 @@ if (isNewArchitectureEnabled()) {
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["VideoTrim_" + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["VideoProcessing_" + name]).toInteger()
 }
 
 def getPackageNameOrDefault() {
-  return rootProject.ext.has("VideoTrim_ffmpeg_package") ? rootProject.ext.get("VideoTrim_ffmpeg_package") : project.properties["VideoTrim_ffmpeg_package"]
+  return rootProject.ext.has("VideoProcessing_ffmpeg_package") ? rootProject.ext.get("VideoProcessing_ffmpeg_package") : project.properties["VideoProcessing_ffmpeg_package"]
 }
 
 def getPackageVersionOrDefault() {
-  return rootProject.ext.has("VideoTrim_ffmpeg_version") ? rootProject.ext.get("VideoTrim_ffmpeg_version") : project.properties["VideoTrim_ffmpeg_version"]
+  return rootProject.ext.has("VideoProcessing_ffmpeg_version") ? rootProject.ext.get("VideoProcessing_ffmpeg_version") : project.properties["VideoProcessing_ffmpeg_version"]
 }
 
 def isNewArchitectureEnabled() {
@@ -40,7 +40,7 @@ def isNewArchitectureEnabled() {
 }
 
 android {
-  namespace "com.videotrim"
+  namespace "com.videoprocessing"
 
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
@@ -101,7 +101,7 @@ dependencies {
 if (isNewArchitectureEnabled()) {
   react {
     jsRootDir = file("../src/")
-    libraryName = "VideoTrim"
-    codegenJavaPackageName = "com.videotrim"
+    libraryName = "VideoProcessing"
+    codegenJavaPackageName = "com.videoprocessing"
   }
 }

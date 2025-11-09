@@ -5,8 +5,8 @@ import ffmpegkit
 let FILE_PREFIX = "trimmedVideo"
 let BEFORE_TRIM_PREFIX = "beforeTrim"
 
-@objc(VideoTrimSwift)
-public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDelegate {
+@objc(VideoProcessingSwift)
+public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDelegate {
   // MARK: instance private props
   private var isShowing = false
   private var vc: VideoTrimmerViewController?
@@ -209,7 +209,7 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
     }
   }
   
-  @objc public weak var delegate: VideoTrimProtocol?
+  @objc public weak var delegate: VideoProcessingProtocol?
   @objc public var isNewArch = false
   
   // MARK: for old arch
@@ -387,12 +387,12 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
                 print("Edited video saved to Photo Library successfully.")
                 
                 if self.removeAfterSavedToPhoto {
-                  let _ = VideoTrim.deleteFile(url: self.outputFile!)
+                  let _ = VideoProcessing.deleteFile(url: self.outputFile!)
                 }
               } else {
                 self.onError(message: "Failed to save edited video to Photo Library: \(error?.localizedDescription ?? "Unknown error")", code: .failToSaveToPhoto)
                 if self.removeAfterFailedToSavePhoto {
-                  let _ = VideoTrim.deleteFile(url: self.outputFile!)
+                  let _ = VideoProcessing.deleteFile(url: self.outputFile!)
                 }
               }
             }
@@ -543,10 +543,11 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
                       
                       // Handle removeAfterSavedToPhoto
                       if let removeAfterSaved = config["removeAfterSavedToPhoto"] as? Bool, removeAfterSaved {
-                        let _ = VideoTrim.deleteFile(url: outputFile)
+                        let _ = VideoProcessing.deleteFile(url: outputFile)
                       }
                       
                       let result = [
+                        "success": true,
                         "outputPath": outputFile.absoluteString,
                         "startTime": startTime,
                         "endTime": endTime,
@@ -559,7 +560,7 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
                       
                       // Handle removeAfterFailedToSavePhoto
                       if let removeAfterFailed = config["removeAfterFailedToSavePhoto"] as? Bool, removeAfterFailed {
-                        let _ = VideoTrim.deleteFile(url: outputFile)
+                        let _ = VideoProcessing.deleteFile(url: outputFile)
                       }
                       
                       let result = [
@@ -576,7 +577,7 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
                   
                   // Handle removeAfterFailedToSavePhoto
                   if let removeAfterFailed = config["removeAfterFailedToSavePhoto"] as? Bool, removeAfterFailed {
-                    let _ = VideoTrim.deleteFile(url: outputFile)
+                    let _ = VideoProcessing.deleteFile(url: outputFile)
                   }
                   
                   let result = [
@@ -591,6 +592,7 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
           } else {
             // For audio files, we can't save to photo library, just return success
             let result = [
+              "success": true,
               "outputPath": outputFile.absoluteString,
               "startTime": startTime,
               "endTime": endTime,
@@ -601,6 +603,7 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
           }
         } else {
           let result = [
+            "success": true,
             "outputPath": outputFile.absoluteString,
             "startTime": startTime,
             "endTime": endTime,
@@ -667,7 +670,7 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
           self.onError(message: message, code: .failToShare)
           
           if self.removeAfterFailedToShare {
-            let _ = VideoTrim.deleteFile(url: self.outputFile!)
+            let _ = VideoProcessing.deleteFile(url: self.outputFile!)
           }
           return
         }
@@ -675,12 +678,12 @@ public class VideoTrim: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPickerDe
         if completed {
           print("User completed the sharing activity")
           if self.removeAfterShared {
-            let _ = VideoTrim.deleteFile(url: self.outputFile!)
+            let _ = VideoProcessing.deleteFile(url: self.outputFile!)
           }
         } else {
           print("User cancelled or failed to complete the sharing activity")
           if self.removeAfterFailedToShare {
-            let _ = VideoTrim.deleteFile(url: self.outputFile!)
+            let _ = VideoProcessing.deleteFile(url: self.outputFile!)
           }
         }
         
@@ -928,7 +931,7 @@ extension VideoTrim {
   // Old Arch
   @objc(listFiles:withRejecter:)
   func listFiles(resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
-    resolve(VideoTrim._listFiles())
+    resolve(VideoProcessing._listFiles())
   }
   
   // New Arch
@@ -950,7 +953,7 @@ extension VideoTrim {
   // Old Arch
   @objc(cleanFiles:withRejecter:)
   func cleanFiles(resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
-    resolve(VideoTrim.cleanFiles())
+    resolve(VideoProcessing.cleanFiles())
   }
   
   // New Arch
@@ -963,7 +966,7 @@ extension VideoTrim {
   // Old Arch
   @objc(deleteFile:withResolver:withRejecter:)
   func deleteFile(uri: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
-    resolve(VideoTrim.deleteFile(uri: uri))
+    resolve(VideoProcessing.deleteFile(uri: uri))
   }
   
   private static func listFiles() -> [URL] {
@@ -1010,7 +1013,7 @@ extension VideoTrim {
   // Old Arch
   @objc(isValidFile:withResolver:withRejecter:)
   func isValidFile(uri: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) -> Void {
-    VideoTrim.isValidFile(url: uri, completion: { payload in
+    VideoProcessing.isValidFile(url: uri, completion: { payload in
       resolve(payload)
     })
   }
@@ -1101,14 +1104,14 @@ extension VideoTrim {
 extension VideoTrim {
   public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
     if removeAfterSavedToDocuments {
-      let _ = VideoTrim.deleteFile(url: outputFile!)
+      let _ = VideoProcessing.deleteFile(url: outputFile!)
     }
     closeEditor()
   }
   
   public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
     if removeAfterFailedToSaveDocuments {
-      let _ = VideoTrim.deleteFile(url: outputFile!)
+      let _ = VideoProcessing.deleteFile(url: outputFile!)
     }
     closeEditor()
   }

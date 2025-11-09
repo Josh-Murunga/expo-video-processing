@@ -1,4 +1,4 @@
-package com.videotrim
+package com.videoprocessing
 
 import android.R.attr.progressBarStyleHorizontal
 import android.R.attr.selectableItemBackground
@@ -39,11 +39,11 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
-import com.videotrim.enums.ErrorCode
-import com.videotrim.interfaces.VideoTrimListener
-import com.videotrim.utils.MediaMetadataUtil
-import com.videotrim.utils.StorageUtil
-import com.videotrim.widgets.VideoTrimmerView
+import com.videoprocessing.enums.ErrorCode
+import com.videoprocessing.interfaces.VideoProcessingListener
+import com.videoprocessing.utils.MediaMetadataUtil
+import com.videoprocessing.utils.StorageUtil
+import com.videoprocessing.widgets.VideoProcessingView
 import iknow.android.utils.BaseUtils
 import java.io.File
 import java.io.FileInputStream
@@ -56,13 +56,13 @@ import java.util.TimeZone
  * Contains all shared business logic between old + new arch.
  * Does NOT know how to emit events.
  */
-open class BaseVideoTrimModule internal constructor(
+open class BaseVideoProcessingModule internal constructor(
   private val reactApplicationContext: ReactApplicationContext,
   private val sendEvent: (eventName: String, params: WritableMap?) -> Unit
-) : VideoTrimListener, LifecycleEventListener {
+) : VideoProcessingListener, LifecycleEventListener {
 
   private var isInit: Boolean = false
-  private var trimmerView: VideoTrimmerView? = null
+  private var trimmerView: VideoProcessingView? = null
   private var alertDialog: AlertDialog? = null
   private var mProgressDialog: AlertDialog? = null
   private var cancelTrimmingConfirmDialog: AlertDialog? = null
@@ -143,9 +143,9 @@ open class BaseVideoTrimModule internal constructor(
       isInit = true
     }
 
-    // here is NOT main thread, we need to create VideoTrimmerView on UI thread, so that later we can update it using same thread
+    // here is NOT main thread, we need to create VideoProcessingView on UI thread, so that later we can update it using same thread
     UiThreadUtil.runOnUiThread {
-      trimmerView = VideoTrimmerView(reactApplicationContext, editorConfig, null)
+      trimmerView = VideoProcessingView(reactApplicationContext, editorConfig, null)
       trimmerView?.setOnTrimVideoListener(this)
       trimmerView?.initByURI(filePath.toUri())
 
@@ -214,7 +214,7 @@ open class BaseVideoTrimModule internal constructor(
 
   // because trimmerView is rendered within the dialog, we need to apply safe area insets to the dialog
   // else setOnApplyWindowInsetsListener will not fire
-  private fun applySafeAreaToDialog(dialog: AlertDialog, trimmerView: VideoTrimmerView) {
+  private fun applySafeAreaToDialog(dialog: AlertDialog, trimmerView: VideoProcessingView) {
     val window = dialog.window
     if (window != null) {
       // Enable edge-to-edge for the dialog window
@@ -241,7 +241,7 @@ open class BaseVideoTrimModule internal constructor(
 
   private fun init() {
     isInit = true
-    // we have to init this before create videoTrimmerView
+    // we have to init this before create VideoProcessingView
     BaseUtils.init(reactApplicationContext)
   }
 
@@ -701,8 +701,8 @@ open class BaseVideoTrimModule internal constructor(
   }
 
   companion object {
-    const val NAME = "VideoTrim"
-    const val TAG = "VideoTrimModule"
+    const val NAME = "VideoProcessing"
+    const val TAG = "VideoProcessingModule"
     const val REQUEST_CODE_SAVE_FILE = 1
   }
 }

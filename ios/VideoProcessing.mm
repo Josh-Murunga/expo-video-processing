@@ -3,20 +3,20 @@
 
 #ifdef RCT_NEW_ARCH_ENABLED
 
-#import <VideoTrimSpec/VideoTrimSpec.h>
+#import <VideoProcessingSpec/VideoProcessingSpec.h>
 
-#if __has_include(<VideoTrim/VideoTrim-Swift.h>)
+#if __has_include(<VideoProcessing/VideoProcessing-Swift.h>)
 // if use_frameworks! :static
-#import <VideoTrim/VideoTrim-Swift.h>
+#import <VideoProcessing/VideoProcessing-Swift.h>
 #else
-#import "VideoTrim-Swift.h"
+#import "VideoProcessing-Swift.h"
 #endif
 
-@interface VideoTrim : NativeVideoTrimSpecBase <NativeVideoTrimSpec, VideoTrimProtocol>
+@interface VideoProcessing : NativeVideoProcessingSpecBase <NativeVideoProcessingSpec, VideoProcessingProtocol>
 @end
 
-@implementation VideoTrim {
-  VideoTrimSwift  * _Nullable videoTrim;
+@implementation VideoProcessing {
+  VideoProcessingSwift  * _Nullable VideoProcessing;
 }
 
 RCT_EXPORT_MODULE()
@@ -30,20 +30,20 @@ RCT_EXPORT_MODULE()
 // MARK: swift static methods
 - (void)cleanFiles:(nonnull RCTPromiseResolveBlock)resolve
             reject:(nonnull RCTPromiseRejectBlock)reject {
-  NSInteger successCount = [VideoTrimSwift cleanFiles];
+  NSInteger successCount = [VideoProcessingSwift cleanFiles];
   resolve(@(successCount));
 }
 
 - (void)deleteFile:(nonnull NSString *)filePath
            resolve:(nonnull RCTPromiseResolveBlock)resolve
             reject:(nonnull RCTPromiseRejectBlock)reject {
-  resolve(@([VideoTrimSwift deleteFile:filePath]));
+  resolve(@([VideoProcessingSwift deleteFile:filePath]));
 }
 
 - (void)isValidFile:(nonnull NSString *)url
             resolve:(nonnull RCTPromiseResolveBlock)resolve
              reject:(nonnull RCTPromiseRejectBlock)reject {
-  [VideoTrimSwift isValidFile:url url:^(NSDictionary<NSString *,id> * _Nonnull result) {
+  [VideoProcessingSwift isValidFile:url url:^(NSDictionary<NSString *,id> * _Nonnull result) {
     resolve(result);
   }];
 }
@@ -51,16 +51,16 @@ RCT_EXPORT_MODULE()
 - (void)listFiles:(nonnull RCTPromiseResolveBlock)resolve
            reject:(nonnull RCTPromiseRejectBlock)reject {
   
-  resolve([VideoTrimSwift listFiles]);
+  resolve([VideoProcessingSwift listFiles]);
 }
 
 - (void)trim:(nonnull NSString *)url
-     options:(JS::NativeVideoTrim::TrimOptions &)options
+     options:(JS::NativeVideoProcessing::TrimOptions &)options
      resolve:(nonnull RCTPromiseResolveBlock)resolve
       reject:(nonnull RCTPromiseRejectBlock)reject {
-  if (!self->videoTrim) {
-    self->videoTrim = [[VideoTrimSwift alloc] init];
-    self->videoTrim.isNewArch = true;
+  if (!self->VideoProcessing) {
+    self->VideoProcessing = [[VideoProcessingSwift alloc] init];
+    self->VideoProcessing.isNewArch = true;
   }
   
   NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -75,7 +75,7 @@ RCT_EXPORT_MODULE()
   dict[@"startTime"] = @(options.startTime());
   dict[@"endTime"] = @(options.endTime());
   
-  [self->videoTrim trim:url url:dict config:^(NSDictionary<NSString *,id> * _Nonnull result) {
+  [self->VideoProcessing trim:url url:dict config:^(NSDictionary<NSString *,id> * _Nonnull result) {
     BOOL success = [result[@"success"] boolValue];
     if (success) {
       resolve(result);
@@ -89,11 +89,11 @@ RCT_EXPORT_MODULE()
 
 // MARK: swift instance methods
 - (void)showEditor:(nonnull NSString *)filePath
-            config:(JS::NativeVideoTrim::EditorConfig &)config {
-  if (!self->videoTrim) {
-    self->videoTrim = [[VideoTrimSwift alloc] init];
-    self->videoTrim.delegate = self;
-    self->videoTrim.isNewArch = true;
+            config:(JS::NativeVideoProcessing::EditorConfig &)config {
+  if (!self->VideoProcessing) {
+    self->VideoProcessing = [[VideoProcessingSwift alloc] init];
+    self->VideoProcessing.delegate = self;
+    self->VideoProcessing.isNewArch = true;
   }
   
   NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -162,16 +162,16 @@ RCT_EXPORT_MODULE()
     dict[@"zoomOnWaitingDuration"] = @(zoomOnWaitingDurationOpt.value());
   }
   
-  [self->videoTrim showEditor:filePath withConfig:dict];
+  [self->VideoProcessing showEditor:filePath withConfig:dict];
 }
 
 - (void)closeEditor {
-  if (self->videoTrim) {
-    [self->videoTrim closeEditor:0];
+  if (self->VideoProcessing) {
+    [self->VideoProcessing closeEditor:0];
   }
 }
 
-#pragma mark - VideoTrimDelegate methods
+#pragma mark - VideoProcessingDelegate methods
 - (void)emitEventToJSWithEventName:(NSString * _Nonnull)eventName body:(NSDictionary<NSString *,id> * _Nullable)body {
   
   if ([eventName isEqualToString:@"onLog"]) {
@@ -201,7 +201,7 @@ RCT_EXPORT_MODULE()
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
 (const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeVideoTrimSpecJSI>(params);
+  return std::make_shared<facebook::react::NativeVideoProcessingSpecJSI>(params);
 }
 
 @end
@@ -210,7 +210,7 @@ RCT_EXPORT_MODULE()
 
 #import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_REMAP_MODULE(VideoTrim, VideoTrimSwift, RCTEventEmitter)
+@interface RCT_EXTERN_REMAP_MODULE(VideoProcessing, VideoProcessingSwift, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(showEditor:(NSString*)uri withConfig:(NSDictionary *)config)
 RCT_EXTERN_METHOD(listFiles:(RCTPromiseResolveBlock)resolve

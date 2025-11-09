@@ -1,11 +1,11 @@
-package com.videotrim
+package com.videoprocessing
 
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReadableMap
 
-abstract class VideoTrimSpec internal constructor(context: ReactApplicationContext) :
+abstract class VideoProcessingSpec internal constructor(context: ReactApplicationContext) :
   ReactContextBaseJavaModule(context) {
 
   abstract fun showEditor(filePath: String, config: ReadableMap)

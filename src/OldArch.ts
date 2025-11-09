@@ -1,14 +1,14 @@
 import { NativeModules, Platform } from 'react-native';
-export * from './NativeVideoTrim';
+export * from './NativeVideoProcessing';
 
 const LINKING_ERROR =
-  `The package 'react-native-video-trim' doesn't seem to be linked. Make sure: \n\n` +
+  `The package 'expo-video-processing' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const VideoTrim = NativeModules.VideoTrim
-  ? NativeModules.VideoTrim
+const VideoProcessing = NativeModules.VideoProcessing
+  ? NativeModules.VideoProcessing
   : new Proxy(
       {},
       {
@@ -18,4 +18,4 @@ const VideoTrim = NativeModules.VideoTrim
       }
     );
 
-export default VideoTrim;
+export default VideoProcessing;

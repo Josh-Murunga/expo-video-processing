@@ -1,4 +1,4 @@
-package com.videotrim.enums;
+package com.videoprocessing.enums;
 
 public enum ErrorCode {
   TRIMMING_FAILED,

@@ -1,4 +1,4 @@
-package com.videotrim.utils;
+package com.videoprocessing.utils;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
@@ -11,8 +11,8 @@ import com.arthenica.ffmpegkit.ReturnCode;
 import com.arthenica.ffmpegkit.SessionState;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
-import com.videotrim.enums.ErrorCode;
-import com.videotrim.interfaces.VideoTrimListener;
+import com.videoprocessing.enums.ErrorCode;
+import com.videoprocessing.interfaces.VideoProcessingListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,9 +26,9 @@ import iknow.android.utils.callback.SingleCallback;
 import iknow.android.utils.thread.BackgroundExecutor;
 
 
-public class VideoTrimmerUtil {
+public class VideoProcessingUtil {
 
-  private static final String TAG = VideoTrimmerUtil.class.getSimpleName();
+  private static final String TAG = VideoProcessingUtil.class.getSimpleName();
   public static final String FILE_PREFIX = "trimmedVideo";
   public static final long MIN_SHOOT_DURATION = 1000L;// min 3 seconds for trimming
   public static final int VIDEO_MAX_TIME = 10;// max 10 seconds for trimming
@@ -45,7 +45,7 @@ public class VideoTrimmerUtil {
   public static final int THUMB_WIDTH = UnitConverter.dpToPx(25); // x2 for better resolution
   private static final int THUMB_RESOLUTION_RES = 2; // double thumb resolution for better quality
 
-  public static FFmpegSession trim(String inputFile, String outputFile, int videoDuration, long startMs, long endMs, boolean enableRotation, double rotationAngle, final VideoTrimListener callback) {
+  public static FFmpegSession trim(String inputFile, String outputFile, int videoDuration, long startMs, long endMs, boolean enableRotation, double rotationAngle, final VideoProcessingListener callback) {
     // Get the current date and time
     Date currentDate = new Date();
 

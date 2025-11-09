@@ -1,4 +1,4 @@
-package com.videotrim
+package com.videoprocessing
 
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule
@@ -7,10 +7,10 @@ import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import java.util.HashMap
 
-class VideoTrimPackage : BaseReactPackage() {
+class VideoProcessingPackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-    return if (name == VideoTrimModule.NAME) {
-      VideoTrimModule(reactContext)
+    return if (name == VideoProcessingModule.NAME) {
+      VideoProcessingModule(reactContext)
     } else {
       null
     }
@@ -19,9 +19,9 @@ class VideoTrimPackage : BaseReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[VideoTrimModule.NAME] = ReactModuleInfo(
-        VideoTrimModule.NAME,
-        VideoTrimModule.NAME,
+      moduleInfos[VideoProcessingModule.NAME] = ReactModuleInfo(
+        VideoProcessingModule.NAME,
+        VideoProcessingModule.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule

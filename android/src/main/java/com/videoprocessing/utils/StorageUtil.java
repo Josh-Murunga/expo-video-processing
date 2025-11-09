@@ -1,4 +1,4 @@
-package com.videotrim.utils;
+package com.videoprocessing.utils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -23,7 +23,7 @@ import java.util.List;
 public class StorageUtil {
   public static String getOutputPath(Context context, String mOutputExt) {
     long timestamp = System.currentTimeMillis() / 1000;
-    File file = new File(context.getFilesDir(), VideoTrimmerUtil.FILE_PREFIX + "_" + timestamp + "." + mOutputExt);
+    File file = new File(context.getFilesDir(), VideoProcessingUtil.FILE_PREFIX + "_" + timestamp + "." + mOutputExt);
     return file.getAbsolutePath();
   }
 
@@ -35,7 +35,7 @@ public class StorageUtil {
 
   public static String[] listFiles(Context context) {
     File filesDir = context.getFilesDir();
-    File[] files = filesDir.listFiles((dir, name) -> name.startsWith(VideoTrimmerUtil.FILE_PREFIX));
+    File[] files = filesDir.listFiles((dir, name) -> name.startsWith(VideoProcessingUtil.FILE_PREFIX));
 
     List<String> fileUrls = new ArrayList<>();
     if (files != null) {

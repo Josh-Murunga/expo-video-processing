@@ -1,16 +1,16 @@
-import VideoTrimNewArch from './NativeVideoTrim';
-import VideoTrimOldArch from './OldArch';
+import VideoProcessingNewArch from './NativeVideoProcessing';
+import VideoProcessingOldArch from './OldArch';
 import type {
   BaseOptions,
   EditorConfig,
   FileValidationResult,
   TrimOptions,
-} from './NativeVideoTrim';
+} from './NativeVideoProcessing';
 import { processColor } from 'react-native';
 
 // React Native runtime flags like nativeFabricUIManager are not in TypeScript types. Using `any` here is intentional and safe.
 const isFabric = !!(global as any).nativeFabricUIManager;
-const VideoTrim = isFabric ? VideoTrimNewArch : VideoTrimOldArch;
+const VideoProcessing = isFabric ? VideoProcessingNewArch : VideoProcessingOldArch;
 
 function createBaseOptions(overrides: Partial<BaseOptions> = {}): BaseOptions {
   return {
@@ -110,7 +110,7 @@ export function showEditor(
   const _trimmerColor = processColor(trimmerColor || '#f1d247');
   const _handleIconColor = processColor(handleIconColor || 'black');
 
-  VideoTrim.showEditor(
+  VideoProcessing.showEditor(
     filePath,
     createEditorConfig({
       ...config,
@@ -127,7 +127,7 @@ export function showEditor(
  * @returns {Promise<string[]>} A **Promise** which resolves to array of files
  */
 export function listFiles(): Promise<string[]> {
-  return VideoTrim.listFiles();
+  return VideoProcessing.listFiles();
 }
 
 /**
@@ -136,7 +136,7 @@ export function listFiles(): Promise<string[]> {
  * @returns {Promise<number>} A **Promise** which resolves to number of deleted files
  */
 export function cleanFiles(): Promise<number> {
-  return VideoTrim.cleanFiles();
+  return VideoProcessing.cleanFiles();
 }
 
 /**
@@ -149,14 +149,14 @@ export function deleteFile(filePath: string): Promise<boolean> {
   if (!filePath?.trim().length) {
     throw new Error('File path cannot be empty!');
   }
-  return VideoTrim.deleteFile(filePath);
+  return VideoProcessing.deleteFile(filePath);
 }
 
 /**
  * Close editor
  */
 export function closeEditor(): void {
-  return VideoTrim.closeEditor();
+  return VideoProcessing.closeEditor();
 }
 
 /**
@@ -166,7 +166,7 @@ export function closeEditor(): void {
  * @returns {Promise<FileValidationResult>} A **Promise** which resolves file info if successful
  */
 export function isValidFile(url: string): Promise<FileValidationResult> {
-  return VideoTrim.isValidFile(url);
+  return VideoProcessing.isValidFile(url);
 }
 
 /**
@@ -180,8 +180,8 @@ export function trim(
   url: string,
   options: Partial<TrimOptions>
 ): Promise<string> {
-  return VideoTrim.trim(url, createTrimOptions(options));
+  return VideoProcessing.trim(url, createTrimOptions(options));
 }
 
-export * from './NativeVideoTrim';
-export default VideoTrim;
+export * from './NativeVideoProcessing';
+export default VideoProcessing;

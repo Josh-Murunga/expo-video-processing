@@ -1,8 +1,8 @@
-package com.videotrim.widgets;
+package com.videoprocessing.widgets;
 
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
-import static com.videotrim.utils.VideoTrimmerUtil.RECYCLER_VIEW_PADDING;
-import static com.videotrim.utils.VideoTrimmerUtil.VIDEO_FRAMES_WIDTH;
+import static com.videoprocessing.utils.VideoProcessingUtil.RECYCLER_VIEW_PADDING;
+import static com.videoprocessing.utils.VideoProcessingUtil.VIDEO_FRAMES_WIDTH;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -36,13 +36,13 @@ import androidx.appcompat.app.AlertDialog;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableMap;
-import com.videotrim.R;
-import com.videotrim.enums.ErrorCode;
-import com.videotrim.interfaces.IVideoTrimmerView;
-import com.videotrim.interfaces.VideoTrimListener;
-import com.videotrim.utils.MediaMetadataUtil;
-import com.videotrim.utils.StorageUtil;
-import com.videotrim.utils.VideoTrimmerUtil;
+import com.videoprocessing.R;
+import com.videoprocessing.enums.ErrorCode;
+import com.videoprocessing.interfaces.IVideoProcessingView;
+import com.videoprocessing.interfaces.VideoProcessingListener;
+import com.videoprocessing.utils.MediaMetadataUtil;
+import com.videoprocessing.utils.StorageUtil;
+import com.videoprocessing.utils.VideoProcessingUtil;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -52,9 +52,9 @@ import iknow.android.utils.DeviceUtil;
 import iknow.android.utils.thread.BackgroundExecutor;
 import iknow.android.utils.thread.UiThreadExecutor;
 
-public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
+public class VideoProcessingView extends FrameLayout implements IVideoProcessingView {
 
-  private static final String TAG = VideoTrimmerView.class.getSimpleName();
+  private static final String TAG = VideoProcessingView.class.getSimpleName();
 
   private ReactApplicationContext mContext;
   private VideoView mVideoView;
@@ -66,10 +66,10 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
   private ImageView mPlayView;
   private LinearLayout mThumbnailContainer;
   private Uri mSourceUri;
-  private VideoTrimListener mOnTrimVideoListener;
+  private VideoProcessingListener mOnTrimVideoListener;
   private int mDuration = 0;
   private long mMaxDuration = (long) Double.POSITIVE_INFINITY;
-  private long mMinDuration = VideoTrimmerUtil.MIN_SHOOT_DURATION;
+  private long mMinDuration = VideoProcessingUtil.MIN_SHOOT_DURATION;
 
   private final Handler mTimingHandler = new Handler();
   private Runnable mTimingRunnable;
@@ -136,11 +136,11 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
   private ImageView leadingChevron;
   private ImageView trailingChevron;
 
-  public VideoTrimmerView(ReactApplicationContext context, ReadableMap config, AttributeSet attrs) {
+  public VideoProcessingView(ReactApplicationContext context, ReadableMap config, AttributeSet attrs) {
     this(context, attrs, 0, config);
   }
 
-  public VideoTrimmerView(ReactApplicationContext context, AttributeSet attrs, int defStyleAttr, ReadableMap config) {
+  public VideoProcessingView(ReactApplicationContext context, AttributeSet attrs, int defStyleAttr, ReadableMap config) {
     super(context, attrs, defStyleAttr);
     init(context, config);
   }
@@ -254,7 +254,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     mThumbnailContainer.removeAllViews();
     cachedFullViewThumbnails.clear(); // Clear previous cache
 
-    VideoTrimmerUtil.shootVideoThumbInBackground(mediaMetadataRetriever, totalThumbsCount, startPosition, endPosition,
+    VideoProcessingUtil.shootVideoThumbInBackground(mediaMetadataRetriever, totalThumbsCount, startPosition, endPosition,
       (bitmap, interval) -> {
         if (bitmap != null) {
           runOnUiThread(() -> {
@@ -262,7 +262,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
             thumbImageView.setImageBitmap(bitmap);
             thumbImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(100, LayoutParams.MATCH_PARENT);
-            layoutParams.width = VideoTrimmerUtil.VIDEO_FRAMES_WIDTH / VideoTrimmerUtil.MAX_COUNT_RANGE;
+            layoutParams.width = VideoProcessingUtil.VIDEO_FRAMES_WIDTH / VideoProcessingUtil.MAX_COUNT_RANGE;
             thumbImageView.setLayoutParams(layoutParams);
             mThumbnailContainer.addView(thumbImageView);
 
@@ -292,16 +292,16 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
       Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 
       if (bitmap != null) {
-        int bitmapHeight = bitmap.getHeight() > 0 ? bitmap.getHeight() : VideoTrimmerUtil.THUMB_HEIGHT;
-        int bitmapWidth = bitmap.getWidth() > 0 ? bitmap.getWidth() : VideoTrimmerUtil.THUMB_WIDTH;
-        VideoTrimmerUtil.mThumbWidth = VideoTrimmerUtil.THUMB_HEIGHT * bitmapWidth / bitmapHeight;
+        int bitmapHeight = bitmap.getHeight() > 0 ? bitmap.getHeight() : VideoProcessingUtil.THUMB_HEIGHT;
+        int bitmapWidth = bitmap.getWidth() > 0 ? bitmap.getWidth() : VideoProcessingUtil.THUMB_WIDTH;
+        VideoProcessingUtil.mThumbWidth = VideoProcessingUtil.THUMB_HEIGHT * bitmapWidth / bitmapHeight;
       }
 
-      VideoTrimmerUtil.SCREEN_WIDTH_FULL = this.getScreenWidthInPortraitMode();
-      VideoTrimmerUtil.VIDEO_FRAMES_WIDTH = VideoTrimmerUtil.SCREEN_WIDTH_FULL - RECYCLER_VIEW_PADDING * 2;
-      VideoTrimmerUtil.MAX_COUNT_RANGE = VideoTrimmerUtil.mThumbWidth != 0 ? Math.max((VIDEO_FRAMES_WIDTH / VideoTrimmerUtil.mThumbWidth), VideoTrimmerUtil.MAX_COUNT_RANGE) : VideoTrimmerUtil.MAX_COUNT_RANGE;
+      VideoProcessingUtil.SCREEN_WIDTH_FULL = this.getScreenWidthInPortraitMode();
+      VideoProcessingUtil.VIDEO_FRAMES_WIDTH = VideoProcessingUtil.SCREEN_WIDTH_FULL - RECYCLER_VIEW_PADDING * 2;
+      VideoProcessingUtil.MAX_COUNT_RANGE = VideoProcessingUtil.mThumbWidth != 0 ? Math.max((VIDEO_FRAMES_WIDTH / VideoProcessingUtil.mThumbWidth), VideoProcessingUtil.MAX_COUNT_RANGE) : VideoProcessingUtil.MAX_COUNT_RANGE;
 
-      startShootVideoThumbs(mContext, VideoTrimmerUtil.MAX_COUNT_RANGE, 0, mDuration);
+      startShootVideoThumbs(mContext, VideoProcessingUtil.MAX_COUNT_RANGE, 0, mDuration);
     }
 
     // Set initial handle positions if mMaxDuration < video duration
@@ -386,7 +386,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     setPlayPauseViewIcon(false);
   }
 
-  public void setOnTrimVideoListener(VideoTrimListener onTrimVideoListener) {
+  public void setOnTrimVideoListener(VideoProcessingListener onTrimVideoListener) {
     mOnTrimVideoListener = onTrimVideoListener;
   }
 
@@ -400,7 +400,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
 
   public void onSaveClicked() {
     onMediaPause();
-    ffmpegSession = VideoTrimmerUtil.trim(
+    ffmpegSession = VideoProcessingUtil.trim(
       mSourceUri.toString(),
       StorageUtil.getOutputPath(mContext, mOutputExt),
       mDuration,
@@ -1071,7 +1071,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
       mThumbnailContainer.removeAllViews();
 
       // Calculate proper number of thumbnails based on container width
-      final int thumbnailWidth = VideoTrimmerUtil.VIDEO_FRAMES_WIDTH / VideoTrimmerUtil.MAX_COUNT_RANGE;
+      final int thumbnailWidth = VideoProcessingUtil.VIDEO_FRAMES_WIDTH / VideoProcessingUtil.MAX_COUNT_RANGE;
       final int numberOfThumbnails = Math.max(8, mThumbnailContainer.getWidth() / thumbnailWidth);
 
       // Create placeholder thumbnails first
@@ -1090,7 +1090,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
       @Override
       public void execute() {
         try {
-          final int thumbnailWidth = VideoTrimmerUtil.VIDEO_FRAMES_WIDTH / VideoTrimmerUtil.MAX_COUNT_RANGE;
+          final int thumbnailWidth = VideoProcessingUtil.VIDEO_FRAMES_WIDTH / VideoProcessingUtil.MAX_COUNT_RANGE;
           final int numberOfThumbnails = Math.max(8, mThumbnailContainer.getWidth() / thumbnailWidth);
           final long visibleDuration = isZoomedIn ? zoomedInRangeDuration : mDuration;
           final long visibleStart = isZoomedIn ? zoomedInRangeStart : 0;

@@ -1,4 +1,4 @@
-package com.videotrim.utils;
+package com.videoprocessing.utils;
 
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;

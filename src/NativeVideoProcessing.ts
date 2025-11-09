@@ -129,4 +129,4 @@ export interface Spec extends TurboModule {
   }>;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('VideoTrim');
+export default TurboModuleRegistry.getEnforcing<Spec>('VideoProcessing');

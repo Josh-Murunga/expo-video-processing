@@ -1,4 +1,4 @@
-package com.videotrim
+package com.videoprocessing
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.Arguments
@@ -9,11 +9,11 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
 
-@ReactModule(name = VideoTrimModule.NAME)
-class VideoTrimModule internal constructor(context: ReactApplicationContext) : VideoTrimSpec(context) {
-  // making BaseVideoTrimModule as abstract class then inherit from here doesn't work
+@ReactModule(name = VideoProcessingModule.NAME)
+class VideoProcessingModule internal constructor(context: ReactApplicationContext) : VideoProcessingSpec(context) {
+  // making BaseVideoProcessingModule as abstract class then inherit from here doesn't work
   // hence using composition instead of inheritance
-  private val base = BaseVideoTrimModule(
+  private val base = BaseVideoProcessingModule(
     context
   ) { eventName, params -> sendEvent(eventName, params) }
 

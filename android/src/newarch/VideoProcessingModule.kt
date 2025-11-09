@@ -1,4 +1,4 @@
-package com.videotrim
+package com.videoprocessing
 
 import android.util.Log
 import com.facebook.react.bridge.Promise
@@ -6,12 +6,12 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 
-class VideoTrimModule(
+class VideoProcessingModule(
   context: ReactApplicationContext
-) : VideoTrimSpec(context) {
-  // making BaseVideoTrimModule as abstract class then inherit from here doesn't work
+) : VideoProcessingSpec(context) {
+  // making BaseVideoProcessingModule as abstract class then inherit from here doesn't work
   // hence using composition instead of inheritance
-  private val base = BaseVideoTrimModule(
+  private val base = BaseVideoProcessingModule(
     context
   ) { eventName, params -> sendEvent(eventName, params) }
 
