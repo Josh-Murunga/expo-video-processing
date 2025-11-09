@@ -6,7 +6,7 @@ import {
   Modal,
   type EventSubscription,
 } from 'react-native';
-import NativeVideoTrim, {
+import NativeVideoProcessing, {
   cleanFiles,
   deleteFile,
   listFiles,
@@ -15,7 +15,7 @@ import NativeVideoTrim, {
   // closeEditor,
   trim,
   type Spec,
-} from 'react-native-video-trim';
+} from 'expo-video-processing';
 import {
   launchImageLibrary,
   type ImagePickerResponse,
@@ -30,35 +30,35 @@ export default function App() {
   useEffect(() => {
     console.log(1111112, (global as any)?.nativeFabricUIManager);
 
-    listenerSubscription.current.onLoad = (NativeVideoTrim as Spec).onLoad(
+    listenerSubscription.current.onLoad = (NativeVideoProcessing as Spec).onLoad(
       ({ duration }) => console.log('onLoad', duration)
     );
 
     listenerSubscription.current.onStartTrimming = (
-      NativeVideoTrim as Spec
+      NativeVideoProcessing as Spec
     ).onStartTrimming(() => console.log('onStartTrimming'));
 
     listenerSubscription.current.onCancelTrimming = (
-      NativeVideoTrim as Spec
+      NativeVideoProcessing as Spec
     ).onCancelTrimming(() => console.log('onCancelTrimming'));
-    listenerSubscription.current.onCancel = (NativeVideoTrim as Spec).onCancel(
+    listenerSubscription.current.onCancel = (NativeVideoProcessing as Spec).onCancel(
       () => console.log('onCancel')
     );
-    listenerSubscription.current.onHide = (NativeVideoTrim as Spec).onHide(() =>
+    listenerSubscription.current.onHide = (NativeVideoProcessing as Spec).onHide(() =>
       console.log('onHide')
     );
-    listenerSubscription.current.onShow = (NativeVideoTrim as Spec).onShow(() =>
+    listenerSubscription.current.onShow = (NativeVideoProcessing as Spec).onShow(() =>
       console.log('onShow')
     );
     listenerSubscription.current.onFinishTrimming = (
-      NativeVideoTrim as Spec
+      NativeVideoProcessing as Spec
     ).onFinishTrimming(({ outputPath, startTime, endTime, duration }) =>
       console.log(
         'onFinishTrimming',
         `outputPath: ${outputPath}, startTime: ${startTime}, endTime: ${endTime}, duration: ${duration}`
       )
     );
-    listenerSubscription.current.onLog = (NativeVideoTrim as Spec).onLog(
+    listenerSubscription.current.onLog = (NativeVideoProcessing as Spec).onLog(
       ({ level, message, sessionId }) =>
         console.log(
           'onLog',
@@ -66,7 +66,7 @@ export default function App() {
         )
     );
     listenerSubscription.current.onStatistics = (
-      NativeVideoTrim as Spec
+      NativeVideoProcessing as Spec
     ).onStatistics(
       ({
         sessionId,
@@ -83,7 +83,7 @@ export default function App() {
           `sessionId: ${sessionId}, videoFrameNumber: ${videoFrameNumber}, videoFps: ${videoFps}, videoQuality: ${videoQuality}, size: ${size}, time: ${time}, bitrate: ${bitrate}, speed: ${speed}`
         )
     );
-    listenerSubscription.current.onError = (NativeVideoTrim as Spec).onError(
+    listenerSubscription.current.onError = (NativeVideoProcessing as Spec).onError(
       ({ message, errorCode }) =>
         console.log('onError', `message: ${message}, errorCode: ${errorCode}`)
     );
