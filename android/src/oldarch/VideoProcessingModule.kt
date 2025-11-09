@@ -70,6 +70,6 @@ class VideoProcessingModule internal constructor(context: ReactApplicationContex
   }
 
   companion object {
-    const val NAME = "VideoTrim"
+    const val NAME = "VideoProcessing"
   }
 }

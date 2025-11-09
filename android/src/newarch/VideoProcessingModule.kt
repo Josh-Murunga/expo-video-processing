@@ -70,7 +70,7 @@ class VideoProcessingModule(
   }
 
   companion object {
-    const val NAME = "VideoTrim"
+    const val NAME = "VideoProcessing"
   }
 
 }
