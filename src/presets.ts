@@ -2,18 +2,19 @@ import type { CompressionOptions } from './NativeVideoProcessing';
 
 /**
  * Predefined compression presets for common use cases
+ * Note: preset field removed - not supported in minimal FFmpeg builds
  */
 export const COMPRESSION_PRESETS: Record<string, Partial<CompressionOptions>> = {
   /**
    * High quality - minimal compression
    * Best for: Archiving, professional use
    * File size: Large
+   * Note: Only height specified to maintain aspect ratio
    */
   HIGH_QUALITY: {
-    resolution: { width: 1920, height: 1080 },
+    resolution: { height: 1080 },
     bitrate: '4M',
     crf: 20,
-    preset: 'medium',
     audioBitrate: '192k',
   },
 
@@ -21,12 +22,12 @@ export const COMPRESSION_PRESETS: Record<string, Partial<CompressionOptions>> = 
    * Medium quality - balanced compression
    * Best for: General use, sharing
    * File size: Medium
+   * Note: Only height specified to maintain aspect ratio
    */
   MEDIUM_QUALITY: {
-    resolution: { width: 1280, height: 720 },
+    resolution: { height: 720 },
     bitrate: '2M',
     crf: 23,
-    preset: 'medium',
     audioBitrate: '128k',
   },
 
@@ -34,12 +35,12 @@ export const COMPRESSION_PRESETS: Record<string, Partial<CompressionOptions>> = 
    * Low quality - maximum compression
    * Best for: Quick sharing, limited storage
    * File size: Small
+   * Note: Only height specified to maintain aspect ratio
    */
   LOW_QUALITY: {
-    resolution: { width: 854, height: 480 },
+    resolution: { height: 480 },
     bitrate: '1M',
     crf: 28,
-    preset: 'fast',
     audioBitrate: '96k',
   },
 
@@ -47,12 +48,12 @@ export const COMPRESSION_PRESETS: Record<string, Partial<CompressionOptions>> = 
    * Social media optimized (9:16 for stories)
    * Best for: Instagram, TikTok, Snapchat stories
    * File size: Medium
+   * Note: Fixed aspect ratio for vertical video
    */
   SOCIAL_MEDIA: {
-    resolution: { width: 1280, height: 720 },
+    resolution: { width: 1080, height: 1920 },
     bitrate: '2.5M',
     crf: 23,
-    preset: 'medium',
     audioBitrate: '128k',
     fps: 30,
   },
@@ -61,12 +62,12 @@ export const COMPRESSION_PRESETS: Record<string, Partial<CompressionOptions>> = 
    * Web optimized (16:9)
    * Best for: YouTube, Vimeo, web players
    * File size: Medium
+   * Note: Only height specified to maintain aspect ratio
    */
   WEB_OPTIMIZED: {
-    resolution: { width: 1920, height: 1080 },
+    resolution: { height: 1080 },
     bitrate: '3M',
     crf: 23,
-    preset: 'medium',
     audioBitrate: '128k',
     fps: 30,
   },
@@ -75,12 +76,12 @@ export const COMPRESSION_PRESETS: Record<string, Partial<CompressionOptions>> = 
    * Mobile optimized
    * Best for: Mobile playback, WhatsApp
    * File size: Small
+   * Note: Only height specified to maintain aspect ratio
    */
   MOBILE_OPTIMIZED: {
-    resolution: { width: 720, height: 1280 },
+    resolution: { height: 720 },
     bitrate: '1.5M',
     crf: 25,
-    preset: 'fast',
     audioBitrate: '96k',
     fps: 30,
   },

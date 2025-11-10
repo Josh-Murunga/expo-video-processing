@@ -31,6 +31,7 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.ReturnCode
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
@@ -701,8 +702,39 @@ open class BaseVideoProcessingModule internal constructor(
     reactApplicationContext.currentActivity?.startActivity(Intent.createChooser(shareIntent, "Share file"))
   }
 
+  private fun logFFmpegInfo() {
+    Log.d(TAG, "=== FFmpeg Information ===")
+    
+    // Version info
+    FFmpegKit.execute("-version").let { session ->
+      Log.d(TAG, "FFmpeg Version:")
+      session.allLogsAsString?.let { Log.d(TAG, it) }
+    }
+    
+    // Available encoders
+    FFmpegKit.execute("-encoders").let { session ->
+      Log.d(TAG, "Available Encoders:")
+      session.allLogsAsString?.let { Log.d(TAG, it) }
+    }
+    
+    // H264 encoder help
+    FFmpegKit.execute("-h encoder=h264").let { session ->
+      Log.d(TAG, "H264 Encoder Options:")
+      session.allLogsAsString?.let { Log.d(TAG, it) }
+    }
+    
+    // Available filters
+    FFmpegKit.execute("-filters").let { session ->
+      Log.d(TAG, "Available Filters:")
+      session.allLogsAsString?.let { Log.d(TAG, it) }
+    }
+    
+    Log.d(TAG, "=== End FFmpeg Information ===")
+  }
 
   fun compress(options: ReadableMap?, promise: Promise) {
+    logFFmpegInfo()
+
     val inputPath = options?.getString("inputPath") ?: run {
       promise.reject(Exception("Input path is required"))
       return
@@ -743,7 +775,7 @@ open class BaseVideoProcessingModule internal constructor(
 
     options.getString("bitrate")?.let { cmds.addAll(listOf("-b:v", it)) }
     if (options.hasKey("crf")) cmds.addAll(listOf("-crf", options.getInt("crf").toString()))
-    options.getString("preset")?.let { cmds.addAll(listOf("-preset", it)) }
+    // Preset flag removed - not supported in this FFmpeg build
     if (options.hasKey("fps")) cmds.addAll(listOf("-r", options.getInt("fps").toString()))
     cmds.addAll(listOf("-c:a", "aac"))
     options.getString("audioBitrate")?.let { cmds.addAll(listOf("-b:a", it)) }
@@ -782,9 +814,12 @@ open class BaseVideoProcessingModule internal constructor(
               StorageUtil.saveVideoToGallery(reactApplicationContext, outputPath)
               if (options.getBoolean("removeAfterSavedToPhoto") == true) StorageUtil.deleteFile(outputPath)
               promise.resolve(result)
-            } catch (e: IOException) {
-              if (options.getBoolean("removeAfterFailedToSavePhoto") == true) StorageUtil.deleteFile(outputPath)
-              promise.reject(Exception("Failed to save: " + e.localizedMessage))
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to save to gallery: ${e.message}", e)
+              if (options.getBoolean("removeAfterFailedToSavePhoto") == true) {
+                StorageUtil.deleteFile(outputPath)
+              }
+              promise.reject(Exception("Failed to save to gallery: ${e.message}"))
             }
           } else promise.resolve(result)
         }
