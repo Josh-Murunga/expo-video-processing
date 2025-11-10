@@ -69,6 +69,14 @@ class VideoProcessingModule internal constructor(context: ReactApplicationContex
     base.trim(url, options, promise)
   }
 
+  @ReactMethod
+  override fun compress(
+    options: ReadableMap?,
+    promise: Promise
+  ) {
+    base.compress(options, promise)
+  }
+
   companion object {
     const val NAME = "VideoProcessing"
   }

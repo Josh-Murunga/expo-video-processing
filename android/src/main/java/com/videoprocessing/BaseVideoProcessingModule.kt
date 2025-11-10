@@ -700,6 +700,82 @@ open class BaseVideoProcessingModule internal constructor(
     reactApplicationContext.currentActivity?.startActivity(Intent.createChooser(shareIntent, "Share file"))
   }
 
+
+  fun compress(options: ReadableMap?, promise: Promise) {
+    val inputPath = options?.getString("inputPath") ?: run {
+      promise.reject(Exception("Input path is required"))
+      return
+    }
+
+    val inputFile = File(inputPath)
+    if (!inputFile.exists()) {
+      promise.reject(Exception("Input file does not exist: $inputPath"))
+      return
+    }
+    val originalSize = inputFile.length()
+
+    val outputExt = options.getString("outputExt") ?: "mp4"
+    val outputPath = StorageUtil.getOutputPath(reactApplicationContext, outputExt)
+
+    val cmds = mutableListOf("-i", inputPath, "-c:v", "h264")
+
+    if (options.hasKey("resolution")) {
+      val resolution = options.getMap("resolution")
+      val width = if (resolution?.hasKey("width") == true) resolution.getInt("width") else null
+      val height = if (resolution?.hasKey("height") == true) resolution.getInt("height") else null
+      when {
+        width != null && height != null -> cmds.addAll(listOf("-s", "${width}x${height}"))
+        width != null -> cmds.addAll(listOf("-vf", "scale=${width}:-2"))
+        height != null -> cmds.addAll(listOf("-vf", "scale=-2:${height}"))
+      }
+    }
+
+    options.getString("bitrate")?.let { cmds.addAll(listOf("-b:v", it)) }
+    if (options.hasKey("crf")) cmds.addAll(listOf("-crf", options.getInt("crf").toString()))
+    options.getString("preset")?.let { cmds.addAll(listOf("-preset", it)) }
+    if (options.hasKey("fps")) cmds.addAll(listOf("-r", options.getInt("fps").toString()))
+    cmds.addAll(listOf("-c:a", "aac"))
+    options.getString("audioBitrate")?.let { cmds.addAll(listOf("-b:a", it)) }
+    cmds.add(outputPath!!)
+
+    Log.d(TAG, "Compression command: ${cmds.joinToString(" ")}")
+
+    val retriever = MediaMetadataUtil.getMediaMetadataRetriever(inputPath)
+    val durationStr = retriever?.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
+    val duration = durationStr?.toLongOrNull() ?: 0L
+    retriever?.release()
+
+    FFmpegKit.executeWithArgumentsAsync(cmds.toTypedArray(), { session ->
+      val returnCode = session.returnCode
+      when {
+        ReturnCode.isSuccess(returnCode) -> {
+          val outputFile = File(outputPath)
+          val compressedSize = outputFile.length()
+          val compressionRatio = if (originalSize > 0) ((originalSize - compressedSize).toDouble() / originalSize * 100) else 0.0
+
+          val result = Arguments.createMap()
+          result.putString("outputPath", outputPath)
+          result.putDouble("originalSize", originalSize.toDouble())
+          result.putDouble("compressedSize", compressedSize.toDouble())
+          result.putDouble("compressionRatio", compressionRatio)
+          result.putDouble("duration", duration.toDouble())
+
+          if (options.getBoolean("saveToPhoto") == true) {
+            try {
+              StorageUtil.saveVideoToGallery(reactApplicationContext, outputPath)
+              if (options.getBoolean("removeAfterSavedToPhoto") == true) StorageUtil.deleteFile(outputPath)
+              promise.resolve(result)
+            } catch (e: IOException) {
+              if (options.getBoolean("removeAfterFailedToSavePhoto") == true) StorageUtil.deleteFile(outputPath)
+              promise.reject(Exception("Failed to save: " + e.localizedMessage))
+            }
+          } else promise.resolve(result)
+        }
+        ReturnCode.isCancel(returnCode) -> promise.reject(Exception("Compression cancelled"))
+        else -> promise.reject(Exception("Compression failed: ${session.failStackTrace}"))
+      }
+    }, null, null)
+  }
   companion object {
     const val NAME = "VideoProcessing"
     const val TAG = "VideoProcessingModule"

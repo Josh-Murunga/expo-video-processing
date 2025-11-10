@@ -643,7 +643,160 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
         let error = NSError(domain: "", code: 200, userInfo: nil)
         reject("ERR_TRIM_FAILED", message, error)
       }
+    }
+  // MARK: Compress methods
+  // New Arch
+  @objc(compress:config:)
+  public func _compress(config: NSDictionary, completion: @escaping ([String: Any]) -> Void) {
+    guard let inputPath = config["inputPath"] as? String else {
+      completion(["success": false, "message": "Input path is required"])
+      return
+    }
+    
+    guard let inputURL = URL(string: inputPath) else {
+      completion(["success": false, "message": "Invalid input path"])
+      return
+    }
+    
+    // Get original file size
+    let originalSize = getFileSize(url: inputURL)
+    
+    // Get output path
+    let timestamp = Int(Date().timeIntervalSince1970)
+    let outputExt = config["outputExt"] as? String ?? "mp4"
+    let outputName = "compressedVideo_\(timestamp).\(outputExt)"
+    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    let outputURL = documentsDirectory.appendingPathComponent(outputName)
+    
+    // Build FFmpeg command
+    var cmds = ["-i", inputURL.absoluteString, "-c:v", "h264"]
+    
+    // Resolution
+    if let resolution = config["resolution"] as? NSDictionary {
+      if let width = resolution["width"] as? Int, let height = resolution["height"] as? Int {
+        cmds.append(contentsOf: ["-s", "\(width)x\(height)"])
+      } else if let width = resolution["width"] as? Int {
+        cmds.append(contentsOf: ["-vf", "scale=\(width):-2"])
+      } else if let height = resolution["height"] as? Int {
+        cmds.append(contentsOf: ["-vf", "scale=-2:\(height)"])
+      }
+    }
+    
+    // Bitrate
+    if let bitrate = config["bitrate"] as? String {
+      cmds.append(contentsOf: ["-b:v", bitrate])
+    }
+    
+    // CRF
+    if let crf = config["crf"] as? Int {
+      cmds.append(contentsOf: ["-crf", "\(crf)"])
+    }
+    
+    // Preset
+    if let preset = config["preset"] as? String {
+      cmds.append(contentsOf: ["-preset", preset])
+    }
+    
+    // FPS
+    if let fps = config["fps"] as? Int {
+      cmds.append(contentsOf: ["-r", "\(fps)"])
+    }
+    
+    // Audio codec and bitrate
+    cmds.append(contentsOf: ["-c:a", "aac"])
+    if let audioBitrate = config["audioBitrate"] as? String {
+      cmds.append(contentsOf: ["-b:a", audioBitrate])
+    }
+    
+    cmds.append(outputURL.absoluteString)
+    
+    print("Compression Command: ", cmds.joined(separator: " "))
+    
+    // Get video duration
+    let asset = AVAsset(url: inputURL)
+    let duration = CMTimeGetSeconds(asset.duration) * 1000
+    
+    FFmpegKit.execute(withArgumentsAsync: cmds,
+      withCompleteCallback: { session in
+        let returnCode = session?.getReturnCode()
+        
+        if ReturnCode.isSuccess(returnCode) {
+          let compressedSize = self.getFileSize(url: outputURL)
+          let compressionRatio = originalSize > 0 ? Double(originalSize - compressedSize) / Double(originalSize) * 100 : 0.0
+          
+          let result: [String: Any] = [
+            "outputPath": outputURL.absoluteString,
+            "originalSize": originalSize,
+            "compressedSize": compressedSize,
+            "compressionRatio": compressionRatio,
+            "duration": duration
+          ]
+          
+          // Handle saveToPhoto
+          if let saveToPhoto = config["saveToPhoto"] as? Bool, saveToPhoto {
+            PHPhotoLibrary.requestAuthorization { status in
+              DispatchQueue.main.async {
+                if status == .authorized {
+                  PHPhotoLibrary.shared().performChanges({
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
+                  }) { success, error in
+                    if success {
+                      if let removeAfter = config["removeAfterSavedToPhoto"] as? Bool, removeAfter {
+                        let _ = VideoProcessing.deleteFile(url: outputURL)
+                      }
+                      completion(result)
+                    } else {
+                      if let removeAfter = config["removeAfterFailedToSavePhoto"] as? Bool, removeAfter {
+                        let _ = VideoProcessing.deleteFile(url: outputURL)
+                      }
+                      completion(["success": false, "message": "Failed to save: \(error?.localizedDescription ?? "Unknown")"])
+                    }
+                  }
+                } else {
+                  if let removeAfter = config["removeAfterFailedToSavePhoto"] as? Bool, removeAfter {
+                    let _ = VideoProcessing.deleteFile(url: outputURL)
+                  }
+                  completion(["success": false, "message": "Photo Library access denied"])
+                }
+              }
+            }
+          } else {
+            completion(result)
+          }
+        } else if ReturnCode.isCancel(returnCode) {
+          completion(["success": false, "message": "Compression cancelled"])
+        } else {
+          completion(["success": false, "message": "Compression failed: \(session?.getFailStackTrace() ?? "Unknown error")"])
+        }
+      },
+      withLogCallback: nil,
+      withStatisticsCallback: nil
+    )
+  }
+  
+  // Old Arch
+  @objc(compress:withResolver:withRejecter:)
+  func _compress(config: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    _compress(config: config, completion: { payload in
+      if let success = payload["success"] as? Bool, success == false {
+        let message = payload["message"] as? String ?? "Unknown error"
+        let error = NSError(domain: "", code: 200, userInfo: nil)
+        reject("ERR_COMPRESS_FAILED", message, error)
+      } else {
+        resolve(payload)
+      }
     })
+  }
+  
+  private func getFileSize(url: URL) -> Int64 {
+    do {
+      let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+      return attributes[.size] as? Int64 ?? 0
+    } catch {
+      return 0
+    }
+  }
+)
   }
   
   private func saveFileToFilesApp(fileURL: URL) {
@@ -743,7 +896,7 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
 }
 
 // MARK: @objc instance methods
-extension VideoTrim {
+extension VideoProcessing {
   // Old + New arch
   @objc(showEditor:withConfig:)
   public func showEditor(uri: String, config: NSDictionary) {
@@ -921,7 +1074,7 @@ extension VideoTrim {
 }
 
 // MARK: @objc static methods
-extension VideoTrim {
+extension VideoProcessing {
   // New Arch
   @objc(listFiles)
   public static func _listFiles() -> [String] {
@@ -1062,7 +1215,7 @@ extension VideoTrim {
 
 // MARK: Delegates
 // MARK: AssetLoader delegate
-extension VideoTrim {
+extension VideoProcessing {
   func assetLoader(_ loader: AssetLoader, didFailWithError error: any Error, forKey key: String) {
     let message = "Failed to load \(key): \(error.localizedDescription)"
     print("Failed to load \(key)", message)
@@ -1101,7 +1254,7 @@ extension VideoTrim {
 
 
 // MARK: DocumentPicker delegate
-extension VideoTrim {
+extension VideoProcessing {
   public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
     if removeAfterSavedToDocuments {
       let _ = VideoProcessing.deleteFile(url: outputFile!)

@@ -69,6 +69,13 @@ class VideoProcessingModule(
     base.trim(url, options, promise)
   }
 
+  override fun compress(
+    options: ReadableMap,
+    promise: Promise
+  ) {
+    base.compress(options, promise)
+  }
+
   companion object {
     const val NAME = "VideoProcessing"
   }

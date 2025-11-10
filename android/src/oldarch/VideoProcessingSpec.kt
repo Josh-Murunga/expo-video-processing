@@ -21,4 +21,6 @@ abstract class VideoProcessingSpec internal constructor(context: ReactApplicatio
   abstract fun isValidFile(url: String, promise: Promise)
 
   abstract fun trim(url: String, options: ReadableMap?, promise: Promise)
+
+  abstract fun compress(options: ReadableMap?, promise: Promise)
 }

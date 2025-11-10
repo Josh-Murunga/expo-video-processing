@@ -85,6 +85,53 @@ export interface FileValidationResult {
   duration: number;
 }
 
+/**
+ * Video compression options
+ */
+export interface CompressionOptions {
+  /** Input video file path (required) */
+  inputPath: string;
+  /** Target resolution */
+  resolution?: {
+    width?: number;
+    height?: number;
+  };
+  /** Video bitrate (e.g., "1M", "2M", "4M") */
+  bitrate?: string;
+  /** Constant Rate Factor (0-51, lower = better quality, default: 23) */
+  crf?: number;
+  /** Encoding preset (ultrafast, fast, medium, slow, veryslow, default: medium) */
+  preset?: string;
+  /** Target frame rate */
+  fps?: number;
+  /** Audio bitrate (e.g., "128k", "192k") */
+  audioBitrate?: string;
+  /** Output file extension (default: "mp4") */
+  outputExt?: string;
+  /** Save to photo library after compression */
+  saveToPhoto?: boolean;
+  /** Remove file after saving to photo library */
+  removeAfterSavedToPhoto?: boolean;
+  /** Remove file if saving to photo library fails */
+  removeAfterFailedToSavePhoto?: boolean;
+}
+
+/**
+ * Video compression result
+ */
+export interface CompressionResult {
+  /** Output file path */
+  outputPath: string;
+  /** Original file size in bytes */
+  originalSize: number;
+  /** Compressed file size in bytes */
+  compressedSize: number;
+  /** Compression ratio as percentage (0-100) */
+  compressionRatio: number;
+  /** Video duration in milliseconds */
+  duration: number;
+}
+
 export interface Spec extends TurboModule {
   showEditor(filePath: string, config: EditorConfig): void;
   listFiles(): Promise<string[]>;
@@ -93,6 +140,7 @@ export interface Spec extends TurboModule {
   closeEditor(): void;
   isValidFile(url: string): Promise<FileValidationResult>;
   trim(url: string, options: TrimOptions): Promise<string>;
+  compress(options: CompressionOptions): Promise<CompressionResult>;
 
   readonly onStartTrimming: EventEmitter<void>;
   readonly onCancelTrimming: EventEmitter<void>;

@@ -225,6 +225,9 @@ RCT_EXTERN_METHOD(isValidFile:(NSString*)uri withResolver:(RCTPromiseResolveBloc
 RCT_EXTERN_METHOD(trim:(NSString*)uri withConfig:(NSDictionary *)config
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(compress:(NSDictionary *)config
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 @end
 
 #endif

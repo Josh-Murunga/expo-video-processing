@@ -5,6 +5,8 @@ import type {
   EditorConfig,
   FileValidationResult,
   TrimOptions,
+  CompressionOptions,
+  CompressionResult,
 } from './NativeVideoProcessing';
 import { processColor } from 'react-native';
 
@@ -183,5 +185,21 @@ export function trim(
   return VideoProcessing.trim(url, createTrimOptions(options));
 }
 
+/**
+ * Compress a video file
+ *
+ * @param {CompressionOptions} options: compression options
+ * @returns {Promise<CompressionResult>} A **Promise** which resolves to compression result with file sizes and ratio
+ */
+export async function compress(
+  options: CompressionOptions
+): Promise<CompressionResult> {
+  if (!options.inputPath?.trim().length) {
+    throw new Error('Input path cannot be empty!');
+  }
+  return VideoProcessing.compress(options);
+}
+
 export * from './NativeVideoProcessing';
+export * from './presets';
 export default VideoProcessing;
