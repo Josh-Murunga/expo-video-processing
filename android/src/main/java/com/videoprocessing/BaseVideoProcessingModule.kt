@@ -812,11 +812,11 @@ open class BaseVideoProcessingModule internal constructor(
           if (options.getBoolean("saveToPhoto") == true) {
             try {
               StorageUtil.saveVideoToGallery(reactApplicationContext, outputPath)
-              if (options.getBoolean("removeAfterSavedToPhoto") == true) StorageUtil.deleteFile(outputPath)
+              if (options.hasKey("removeAfterSavedToPhoto") && options.getBoolean("removeAfterSavedToPhoto")) StorageUtil.deleteFile(outputPath)
               promise.resolve(result)
             } catch (e: Exception) {
               Log.e(TAG, "Failed to save to gallery: ${e.message}", e)
-              if (options.getBoolean("removeAfterFailedToSavePhoto") == true) {
+              if (options.hasKey("removeAfterFailedToSavePhoto") && options.getBoolean("removeAfterFailedToSavePhoto")) {
                 StorageUtil.deleteFile(outputPath)
               }
               promise.reject(Exception("Failed to save to gallery: ${e.message}"))
