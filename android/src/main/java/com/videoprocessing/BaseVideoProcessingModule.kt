@@ -728,7 +728,7 @@ open class BaseVideoProcessingModule internal constructor(
     val outputExt = options.getString("outputExt") ?: "mp4"
     val outputPath = StorageUtil.getOutputPath(reactApplicationContext, outputExt)
 
-    val cmds = mutableListOf("-i", actualFilePath, "-c:v", "h264")
+    val cmds = mutableListOf("-y", "-i", actualFilePath, "-c:v", "h264")
 
     if (options.hasKey("resolution")) {
       val resolution = options.getMap("resolution")
@@ -749,8 +749,14 @@ open class BaseVideoProcessingModule internal constructor(
     options.getString("audioBitrate")?.let { cmds.addAll(listOf("-b:a", it)) }
     cmds.add(outputPath!!)
 
+    Log.d(TAG, "Compression input: $actualFilePath")
+    Log.d(TAG, "Compression output: $outputPath")
+    Log.d(TAG, "File exists: ${inputFile.exists()}")
+    Log.d(TAG, "File size: ${inputFile.length()} bytes")
     Log.d(TAG, "Compression command: ${cmds.joinToString(" ")}")
+    Log.d(TAG, "Full FFmpeg command: ffmpeg ${cmds.joinToString(" ")}")
 
+    Log.d(TAG, "Getting video metadata...")
     val retriever = MediaMetadataUtil.getMediaMetadataRetriever(actualFilePath)
     val durationStr = retriever?.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
     val duration = durationStr?.toLongOrNull() ?: 0L
@@ -783,7 +789,14 @@ open class BaseVideoProcessingModule internal constructor(
           } else promise.resolve(result)
         }
         ReturnCode.isCancel(returnCode) -> promise.reject(Exception("Compression cancelled"))
-        else -> promise.reject(Exception("Compression failed: ${session.failStackTrace}"))
+        else -> {
+          val errorMessage = "Compression failed with return code: $returnCode. " +
+            "State: ${session.state}. " +
+            "Output: ${session.output}. " +
+            "Logs: ${session.allLogsAsString}"
+          Log.e(TAG, errorMessage)
+          promise.reject(Exception(errorMessage))
+        }
       }
     }, null, null)
   }
