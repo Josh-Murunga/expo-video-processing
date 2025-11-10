@@ -707,9 +707,19 @@ open class BaseVideoProcessingModule internal constructor(
       return
     }
 
-    val inputFile = File(inputPath)
+    var actualFilePath = inputPath
+    if (inputPath.startsWith("file://")) {
+      actualFilePath = Uri.parse(inputPath).path ?: inputPath
+    } else if (!inputPath.startsWith("http://") && !inputPath.startsWith("https://")) {
+      if (!StorageUtil.isFileExists(inputPath)) {
+        val uri = Uri.parse(inputPath)
+        actualFilePath = uri.path ?: inputPath
+      }
+    }
+
+    val inputFile = File(actualFilePath)
     if (!inputFile.exists()) {
-      promise.reject(Exception("Input file does not exist: $inputPath"))
+      promise.reject(Exception("Input file does not exist: $actualFilePath (original: $inputPath)"))
       return
     }
     val originalSize = inputFile.length()
@@ -717,7 +727,7 @@ open class BaseVideoProcessingModule internal constructor(
     val outputExt = options.getString("outputExt") ?: "mp4"
     val outputPath = StorageUtil.getOutputPath(reactApplicationContext, outputExt)
 
-    val cmds = mutableListOf("-i", inputPath, "-c:v", "h264")
+    val cmds = mutableListOf("-i", actualFilePath, "-c:v", "h264")
 
     if (options.hasKey("resolution")) {
       val resolution = options.getMap("resolution")
@@ -740,7 +750,7 @@ open class BaseVideoProcessingModule internal constructor(
 
     Log.d(TAG, "Compression command: ${cmds.joinToString(" ")}")
 
-    val retriever = MediaMetadataUtil.getMediaMetadataRetriever(inputPath)
+    val retriever = MediaMetadataUtil.getMediaMetadataRetriever(actualFilePath)
     val durationStr = retriever?.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
     val duration = durationStr?.toLongOrNull() ?: 0L
     retriever?.release()

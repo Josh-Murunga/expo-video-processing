@@ -653,9 +653,35 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
       return
     }
     
-    guard let inputURL = URL(string: inputPath) else {
-      completion(["success": false, "message": "Invalid input path"])
+    // Handle different URL formats
+    var inputURL: URL?
+    if inputPath.hasPrefix("http://") || inputPath.hasPrefix("https://") {
+      // Remote URL
+      inputURL = URL(string: inputPath)
+    } else if inputPath.hasPrefix("file://") {
+      // File URL
+      inputURL = URL(string: inputPath)
+    } else {
+      // Try as file path or other URL format
+      if let url = URL(string: inputPath) {
+        inputURL = url
+      } else {
+        // Try creating file URL from path
+        inputURL = URL(fileURLWithPath: inputPath)
+      }
+    }
+    
+    guard let inputURL = inputURL else {
+      completion(["success": false, "message": "Invalid input path: \(inputPath)"])
       return
+    }
+    
+    // Verify file exists for local files
+    if inputURL.isFileURL {
+      if !FileManager.default.fileExists(atPath: inputURL.path) {
+        completion(["success": false, "message": "Input file does not exist: \(inputURL.path)"])
+        return
+      }
     }
     
     // Get original file size
@@ -668,8 +694,9 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
     let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     let outputURL = documentsDirectory.appendingPathComponent(outputName)
     
-    // Build FFmpeg command
-    var cmds = ["-i", inputURL.absoluteString, "-c:v", "h264"]
+    // Build FFmpeg command - use path for local files, absoluteString for remote
+    let inputForFFmpeg = inputURL.isFileURL ? inputURL.path : inputURL.absoluteString
+    var cmds = ["-i", inputForFFmpeg, "-c:v", "h264"]
     
     // Resolution
     if let resolution = config["resolution"] as? NSDictionary {
@@ -708,7 +735,7 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
       cmds.append(contentsOf: ["-b:a", audioBitrate])
     }
     
-    cmds.append(outputURL.absoluteString)
+    cmds.append(outputURL.path)
     
     print("Compression Command: ", cmds.joined(separator: " "))
     
@@ -725,7 +752,7 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
           let compressionRatio = originalSize > 0 ? Double(originalSize - compressedSize) / Double(originalSize) * 100 : 0.0
           
           let result: [String: Any] = [
-            "outputPath": outputURL.absoluteString,
+            "outputPath": outputURL.path,
             "originalSize": originalSize,
             "compressedSize": compressedSize,
             "compressionRatio": compressionRatio,
@@ -787,7 +814,8 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
       }
     })
   }
-  
+
+
   private func getFileSize(url: URL) -> Int64 {
     do {
       let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
