@@ -228,11 +228,17 @@ export default function App() {
 
             <TouchableOpacity
               onPress={async () => {
-                const url =
-                  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+                const result = await launchImageLibrary(
+                  {
+                    mediaType: 'video',
+                    includeExtra: true,
+                    assetRepresentationMode: 'current',
+                  },
+                  onMediaLoaded
+                );
 
                 setIsTrimming(true);
-                trim(url, {
+                trim(result.assets?.[0]?.uri, {
                   startTime: 0,
                   endTime: 15000,
                   saveToPhoto: true,
