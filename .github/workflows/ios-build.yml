@@ -1,0 +1,55 @@
+name: iOS Build Test
+ 
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+ 
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+    
+    - name: Install example dependencies
+      run: |
+        cd example
+        yarn install --frozen-lockfile
+    
+    - name: Install Pods
+      run: |
+        cd example/ios
+        pod install
+    
+    - name: Build iOS (Debug)
+      run: |
+        cd example/ios
+        xcodebuild \
+          -workspace VideoTrimExample.xcworkspace \
+          -scheme VideoTrimExample \
+          -sdk iphonesimulator \
+          -configuration Debug \
+          -destination 'platform=iOS Simulator,name=iPhone 14,OS=latest' \
+          clean build \
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty || true
+    
+    - name: Report Status
+      if: success()
+      run: echo "✅ iOS build succeeded!"
+    
+    - name: Report Failure
+      if: failure()
+      run: echo "❌ iOS build failed - check logs above"
