@@ -1,6 +1,7 @@
 import React
 import Photos
 import ffmpegkit
+import AVFoundation
 
 let FILE_PREFIX = "trimmedVideo"
 let BEFORE_TRIM_PREFIX = "beforeTrim"
@@ -643,7 +644,9 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
         let error = NSError(domain: "", code: 200, userInfo: nil)
         reject("ERR_TRIM_FAILED", message, error)
       }
-    }
+    })
+  }
+  
   // MARK: Compress methods
   // New Arch
   @objc(compress:config:)
@@ -823,8 +826,6 @@ public class VideoProcessing: RCTEventEmitter, AssetLoaderDelegate, UIDocumentPi
     } catch {
       return 0
     }
-  }
-)
   }
   
   private func saveFileToFilesApp(fileURL: URL) {

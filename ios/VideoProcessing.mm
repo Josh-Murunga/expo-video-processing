@@ -87,6 +87,103 @@ RCT_EXPORT_MODULE()
   }];
 }
 
+- (void)compress:(JS::NativeVideoProcessing::CompressionOptions &)options
+         resolve:(nonnull RCTPromiseResolveBlock)resolve
+          reject:(nonnull RCTPromiseRejectBlock)reject {
+  if (!self->VideoProcessing) {
+    self->VideoProcessing = [[VideoProcessingSwift alloc] init];
+    self->VideoProcessing.isNewArch = true;
+  }
+  
+  NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+  
+  dict[@"inputPath"] = options.inputPath();
+  
+  // Resolution
+  auto resolutionOpt = options.resolution();
+  if (resolutionOpt.has_value()) {
+    auto resolution = resolutionOpt.value();
+    NSMutableDictionary *resDict = [NSMutableDictionary dictionary];
+    
+    auto widthOpt = resolution.width();
+    if (widthOpt.has_value()) {
+      resDict[@"width"] = @(widthOpt.value());
+    }
+    
+    auto heightOpt = resolution.height();
+    if (heightOpt.has_value()) {
+      resDict[@"height"] = @(heightOpt.value());
+    }
+    
+    dict[@"resolution"] = resDict;
+  }
+  
+  // Bitrate
+  auto bitrateOpt = options.bitrate();
+  if (bitrateOpt.has_value()) {
+    dict[@"bitrate"] = bitrateOpt.value();
+  }
+  
+  // CRF
+  auto crfOpt = options.crf();
+  if (crfOpt.has_value()) {
+    dict[@"crf"] = @(crfOpt.value());
+  }
+  
+  // Preset
+  auto presetOpt = options.preset();
+  if (presetOpt.has_value()) {
+    dict[@"preset"] = presetOpt.value();
+  }
+  
+  // FPS
+  auto fpsOpt = options.fps();
+  if (fpsOpt.has_value()) {
+    dict[@"fps"] = @(fpsOpt.value());
+  }
+  
+  // Audio bitrate
+  auto audioBitrateOpt = options.audioBitrate();
+  if (audioBitrateOpt.has_value()) {
+    dict[@"audioBitrate"] = audioBitrateOpt.value();
+  }
+  
+  // Output extension
+  auto outputExtOpt = options.outputExt();
+  if (outputExtOpt.has_value()) {
+    dict[@"outputExt"] = outputExtOpt.value();
+  }
+  
+  // Save to photo
+  auto saveToPhotoOpt = options.saveToPhoto();
+  if (saveToPhotoOpt.has_value()) {
+    dict[@"saveToPhoto"] = @(saveToPhotoOpt.value());
+  }
+  
+  // Remove after saved to photo
+  auto removeAfterSavedOpt = options.removeAfterSavedToPhoto();
+  if (removeAfterSavedOpt.has_value()) {
+    dict[@"removeAfterSavedToPhoto"] = @(removeAfterSavedOpt.value());
+  }
+  
+  // Remove after failed to save photo
+  auto removeAfterFailedOpt = options.removeAfterFailedToSavePhoto();
+  if (removeAfterFailedOpt.has_value()) {
+    dict[@"removeAfterFailedToSavePhoto"] = @(removeAfterFailedOpt.value());
+  }
+  
+  [self->VideoProcessing compress:dict config:^(NSDictionary<NSString *,id> * _Nonnull result) {
+    BOOL success = [result[@"success"] boolValue];
+    if (success == NO) {
+      NSString *message = result[@"message"];
+      NSError *error = [NSError errorWithDomain:@"" code: 200 userInfo:nil];
+      reject(@"ERR_COMPRESS_FAILED", message, error);
+    } else {
+      resolve(result);
+    }
+  }];
+}
+
 // MARK: swift instance methods
 - (void)showEditor:(nonnull NSString *)filePath
             config:(JS::NativeVideoProcessing::EditorConfig &)config {
