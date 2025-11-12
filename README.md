@@ -5,6 +5,8 @@
 - [API Reference](#api-reference)
   * [showEditor()](#showeditor)
   * [trim()](#trim)
+  * [compress()](#compress)
+  * [Compression Presets](#compression-presets)
   * [File Management](#file-management)
 - [Configuration Options](#configuration-options)
   * [Basic Options](#basic-options)
@@ -13,15 +15,16 @@
 - [Platform Setup](#platform-setup)
 - [Advanced Features](#advanced-features)
   * [Audio Trimming](#audio-trimming)
+  * [Video Compression](#video-compression)
   * [Remote Files (HTTPS)](#remote-files-https)
   * [Video Rotation](#video-rotation)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 
-# React Native Video Trim
+# Expo Video Processing 
 
 <div align="center">
-  <h2>📱 Professional video trimmer for React Native apps</h2>
+  <h2>📱 Professional video processing for React Native apps</h2>
   
   <img src="images/android.gif" width="300" />
   <img src="images/ios.gif" width="300" />
@@ -35,11 +38,13 @@
 
 ## Overview
 
-A powerful, easy-to-use video and audio trimming library for React Native applications.
+A powerful, easy-to-use video and audio trimming and compression library for React Native applications.
 
 ### ✨ Key Features
 
-- **📹 Video & Audio Support** - Trim both video and audio files
+- **📹 Video & Audio Support** - Trim and compress both video and audio files
+- **🗜️ Video Compression** - Reduce file size with customizable quality settings
+- **🎯 Smart Presets** - Pre-configured compression settings for common use cases
 - **🌐 Local & Remote Files** - Support for local storage and HTTPS URLs
 - **💾 Multiple Save Options** - Photos, Documents, or Share to other apps
 - **✅ File Validation** - Built-in validation for media files
@@ -51,6 +56,7 @@ A powerful, easy-to-use video and audio trimming library for React Native applic
 | Feature | Description |
 |---------|-------------|
 | **Trimming** | Precise video/audio trimming with visual controls |
+| **Compression** | Reduce video file size with quality control |
 | **Validation** | Check if files are valid video/audio before processing |
 | **Save Options** | Photos, Documents, Share sheet integration |
 | **File Management** | Complete file lifecycle management |
@@ -64,9 +70,9 @@ A powerful, easy-to-use video and audio trimming library for React Native applic
 ## Installation
 
 ```bash
-npm install react-native-video-trim
+npm install expo-video-processing
 # or
-yarn add react-native-video-trim
+yarn add expo-video-processing
 ```
 
 ### Platform Setup
@@ -138,7 +144,7 @@ Then rebuild your app. **Note:** Expo Go may not work due to native dependencies
 Get up and running in 3 simple steps:
 
 ```javascript
-import { showEditor } from 'react-native-video-trim';
+import { showEditor } from 'expo-video-processing';
 
 // 1. Basic usage - open video editor
 showEditor(videoUrl);
@@ -159,7 +165,7 @@ showEditor(videoUrl, {
 ### Complete Example with File Picker
 
 ```javascript
-import { showEditor } from 'react-native-video-trim';
+import { showEditor } from 'expo-video-processing';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const trimVideo = () => {
@@ -219,6 +225,123 @@ const outputPath = await trim('/path/to/video.mp4', {
   endTime: 25000,   // 25 seconds
 });
 ```
+
+### compress()
+
+Compress a video to reduce file size with customizable quality settings.
+
+```typescript
+compress(options: CompressionOptions): Promise<CompressionResult>
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `inputPath` | `string` | ✅ Yes | Path to input video file |
+| `resolution` | `object` | No | Target resolution `{width?, height?}` |
+| `bitrate` | `string` | No | Video bitrate (e.g., "1M", "2M", "4M") |
+| `fps` | `number` | No | Target frame rate |
+| `audioBitrate` | `string` | No | Audio bitrate (e.g., "128k", "192k") |
+| `outputExt` | `string` | No | Output file extension (default: "mp4") |
+| `saveToPhoto` | `boolean` | No | Save to photo library |
+| `removeAfterSavedToPhoto` | `boolean` | No | Delete after saving |
+| `removeAfterFailedToSavePhoto` | `boolean` | No | Delete if save fails |
+
+**Returns:** Promise resolving to:
+
+```typescript
+{
+  outputPath: string;           // Path to compressed video
+  originalSize: number;         // Original file size (bytes)
+  compressedSize: number;       // Compressed file size (bytes)
+  compressionRatio: number;     // Percentage saved (0-100)
+  duration: number;             // Video duration (milliseconds)
+}
+```
+
+**Examples:**
+
+```javascript
+// Basic compression
+const result = await compress({
+  inputPath: '/path/to/video.mp4',
+  bitrate: '2M',
+});
+
+console.log(`Reduced from ${result.originalSize} to ${result.compressedSize}`);
+console.log(`Saved ${result.compressionRatio}% space`);
+
+// With resolution (maintain aspect ratio)
+const result = await compress({
+  inputPath: videoUri,
+  resolution: { height: 720 },  // Width auto-calculated
+  bitrate: '2M',
+});
+
+// High quality compression
+const result = await compress({
+  inputPath: videoUri,
+  resolution: { width: 1920, height: 1080 },
+  audioBitrate: '192k',
+});
+
+// Maximum compression
+const result = await compress({
+  inputPath: videoUri,
+  resolution: { width: 640, height: 480 },
+  audioBitrate: '96k',
+});
+
+// Save to gallery
+const result = await compress({
+  inputPath: videoUri,
+  resolution: { height: 720 },
+  bitrate: '2M',
+  saveToPhoto: true,
+  removeAfterSavedToPhoto: true,
+});
+```
+
+### Compression Presets
+
+Use pre-configured presets for common scenarios:
+
+```javascript
+import { compress, COMPRESSION_PRESETS } from 'expo-video-processing';
+
+// Available presets
+COMPRESSION_PRESETS.HIGH_QUALITY      // 1080p, high quality
+COMPRESSION_PRESETS.MEDIUM_QUALITY    // 720p, balanced
+COMPRESSION_PRESETS.LOW_QUALITY       // 480p, smaller size
+COMPRESSION_PRESETS.SOCIAL_MEDIA      // 1080x1920, vertical video
+COMPRESSION_PRESETS.WEB_OPTIMIZED     // 1080p, web streaming
+COMPRESSION_PRESETS.MOBILE_OPTIMIZED  // 720p, mobile playback
+
+// Usage
+const result = await compress({
+  inputPath: videoUri,
+  ...COMPRESSION_PRESETS.MEDIUM_QUALITY,
+});
+
+// Override preset values
+const result = await compress({
+  inputPath: videoUri,
+  ...COMPRESSION_PRESETS.MEDIUM_QUALITY,
+  fps: 24,  // Override FPS
+});
+```
+
+**Preset Details:**
+
+| Preset | Resolution | Bitrate | CRF | Use Case |
+|--------|-----------|---------|-----|----------|
+| `HIGH_QUALITY` | 1080p | 4M | 20 | High quality archival |
+| `MEDIUM_QUALITY` | 720p | 2M | 23 | Balanced quality/size |
+| `LOW_QUALITY` | 480p | 1M | 28 | Maximum compression |
+| `SOCIAL_MEDIA` | 1080x1920 | 2.5M | 23 | Vertical social media |
+| `WEB_OPTIMIZED` | 1080p | 3M | 23 | Web streaming |
+| `MOBILE_OPTIMIZED` | 720p | 1.5M | 25 | Mobile playback |
 
 ### File Management
 
@@ -411,6 +534,144 @@ showEditor(audioUrl, {
 });
 ```
 
+### Video Compression
+
+Reduce video file sizes while maintaining quality:
+
+#### Quick Start
+
+```javascript
+import { compress, COMPRESSION_PRESETS } from 'expo-video-processing';
+
+// Use a preset
+const result = await compress({
+  inputPath: videoUri,
+  ...COMPRESSION_PRESETS.MEDIUM_QUALITY,
+});
+
+console.log(`Saved ${result.compressionRatio}% space!`);
+```
+
+#### Resolution Control
+
+**Maintain Aspect Ratio:**
+```javascript
+// Scale by height (recommended)
+await compress({
+  inputPath: videoUri,
+  resolution: { height: 720 },  // Width auto-calculated
+});
+
+// Scale by width
+await compress({
+  inputPath: videoUri,
+  resolution: { width: 1280 },  // Height auto-calculated
+});
+```
+
+**Force Specific Aspect Ratio:**
+```javascript
+// Force 16:9
+await compress({
+  inputPath: videoUri,
+  resolution: { width: 1280, height: 720 },
+});
+
+// Force 9:16 (vertical)
+await compress({
+  inputPath: videoUri,
+  resolution: { width: 1080, height: 1920 },
+});
+
+// Force 1:1 (square)
+await compress({
+  inputPath: videoUri,
+  resolution: { width: 1080, height: 1080 },
+});
+```
+
+#### Quality vs Size Trade-offs
+
+**CRF (Constant Rate Factor):**
+- Range: 0-51 (lower = better quality)
+- `18` - Visually lossless
+- `23` - Default (recommended)
+- `28` - Lower quality, smaller file
+
+**Bitrate:**
+- `"500k"` - Low quality
+- `"1M"` - Medium quality
+- `"2M"` - Good quality
+- `"4M"` - High quality
+- `"8M"` - Very high quality
+
+**Preset (encoding speed):**
+- `"ultrafast"` - Fastest, largest file
+- `"fast"` - Fast, larger file
+- `"medium"` - Balanced (recommended)
+- `"slow"` - Slow, smaller file
+- `"veryslow"` - Slowest, smallest file
+
+#### Common Use Cases
+
+**Social Media Upload:**
+```javascript
+await compress({
+  inputPath: videoUri,
+  ...COMPRESSION_PRESETS.SOCIAL_MEDIA,
+});
+```
+
+**Email Attachment:**
+```javascript
+await compress({
+  inputPath: videoUri,
+  resolution: { width: 640, height: 480 },
+  bitrate: '500k',
+  crf: 28,
+});
+```
+
+**Web Streaming:**
+```javascript
+await compress({
+  inputPath: videoUri,
+  ...COMPRESSION_PRESETS.WEB_OPTIMIZED,
+});
+```
+
+**Mobile Playback:**
+```javascript
+await compress({
+  inputPath: videoUri,
+  ...COMPRESSION_PRESETS.MOBILE_OPTIMIZED,
+});
+```
+
+#### Performance Notes
+
+Compression time varies based on:
+- **Video length**: Longer videos take more time
+- **Input resolution**: Higher resolution = more processing
+- **Output settings**: Lower CRF/higher quality = slower
+- **Preset**: Slower presets take more time but produce smaller files
+- **Device**: Newer devices compress faster
+
+**Typical times** (1 minute video, medium preset):
+- High-end devices: 10-20 seconds
+- Mid-range devices: 20-40 seconds
+- Older devices: 40-90 seconds
+
+#### Tips
+
+1. **Start with presets** - Use `COMPRESSION_PRESETS` for common scenarios
+2. **CRF vs Bitrate** - Use CRF for quality-based encoding, bitrate for size control
+3. **Preset selection** - Use "medium" for balanced speed/quality
+4. **Aspect ratio** - Specify only width or height to maintain aspect ratio
+5. **Test first** - Try different settings on a sample video
+6. **File size** - Lower resolution and higher CRF = smaller files
+7. **Quality** - Lower CRF and higher bitrate = better quality
+
 ### Remote Files (HTTPS)
 
 To trim remote files, you need the HTTPS-enabled version of FFmpeg:
@@ -485,12 +746,84 @@ showEditor(videoUrl, {
 
 ## Examples
 
+### Video Compression Example
+
+```javascript
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { compress, COMPRESSION_PRESETS } from 'expo-video-processing';
+import { launchImageLibrary } from 'react-native-image-picker';
+
+export default function VideoCompressor() {
+  const [compressing, setCompressing] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const compressVideo = async () => {
+    const pickerResult = await launchImageLibrary({
+      mediaType: 'video',
+      quality: 1,
+    });
+
+    if (pickerResult.assets?.[0]?.uri) {
+      setCompressing(true);
+      
+      try {
+        const compressionResult = await compress({
+          inputPath: pickerResult.assets[0].uri,
+          ...COMPRESSION_PRESETS.MEDIUM_QUALITY,
+          saveToPhoto: true,
+        });
+        
+        setResult(compressionResult);
+        console.log('Compression complete:', compressionResult);
+      } catch (error) {
+        console.error('Compression failed:', error);
+      } finally {
+        setCompressing(false);
+      }
+    }
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+      <TouchableOpacity 
+        onPress={compressVideo}
+        disabled={compressing}
+        style={{ 
+          backgroundColor: compressing ? '#ccc' : '#007AFF', 
+          padding: 15, 
+          borderRadius: 8,
+          marginBottom: 20,
+        }}
+      >
+        <Text style={{ color: 'white', fontSize: 16 }}>
+          {compressing ? 'Compressing...' : 'Select & Compress Video'}
+        </Text>
+      </TouchableOpacity>
+
+      {compressing && <ActivityIndicator size="large" color="#007AFF" />}
+
+      {result && (
+        <View style={{ marginTop: 20, padding: 15, backgroundColor: '#f0f0f0', borderRadius: 8 }}>
+          <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Compression Results:</Text>
+          <Text>Original: {(result.originalSize / 1024 / 1024).toFixed(2)} MB</Text>
+          <Text>Compressed: {(result.compressedSize / 1024 / 1024).toFixed(2)} MB</Text>
+          <Text>Saved: {result.compressionRatio.toFixed(1)}%</Text>
+          <Text>Duration: {(result.duration / 1000).toFixed(1)}s</Text>
+          <Text style={{ marginTop: 10, fontSize: 12 }}>Output: {result.outputPath}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+```
+
 ### Complete Implementation (New Architecture)
 
 ```javascript
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
-import { showEditor, isValidFile, type Spec } from 'react-native-video-trim';
+import { showEditor, isValidFile, type Spec } from 'expo-video-processing';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 export default function VideoTrimmer() {
@@ -572,7 +905,7 @@ export default function VideoTrimmer() {
 ```javascript
 import React, { useEffect } from 'react';
 import { NativeEventEmitter, NativeModules } from 'react-native';
-import { showEditor } from 'react-native-video-trim';
+import { showEditor } from 'expo-video-processing';
 
 export default function VideoTrimmer() {
   useEffect(() => {
@@ -605,11 +938,13 @@ export default function VideoTrimmer() {
 - Ensure `file_paths.xml` exists for share functionality
 - Check SDK versions match your project requirements
 - Verify permissions in `AndroidManifest.xml`
+- For New Architecture: Run `./gradlew generateCodegenArtifactsFromSchema`
 
 **iOS Build Errors:**
 - Run `pod install` after installation
 - Check Info.plist permissions for photo access
 - Use development builds with Expo (not Expo Go)
+- Ensure AVFoundation framework is linked (automatic in most cases)
 
 **Runtime Issues:**
 - Validate files with `isValidFile()` before processing
@@ -617,13 +952,65 @@ export default function VideoTrimmer() {
 - Check network connectivity for remote files
 - Ensure proper permissions for save operations
 
+**Compression Issues:**
+
+*Compression fails immediately:*
+- Check input file path is valid and file exists
+- Verify file is a valid video format
+- Ensure sufficient storage space for output
+- Check console logs for detailed error messages
+
+*Compression is too slow:*
+- Use faster preset: `preset: "fast"` or `"ultrafast"`
+- Reduce output resolution
+- Increase CRF value (lower quality, faster encoding)
+- Test on a shorter video first
+
+*Output file is too large:*
+- Increase CRF value (e.g., 28)
+- Reduce bitrate
+- Lower resolution
+- Use slower preset for better compression
+
+*Output quality is too low:*
+- Decrease CRF value (e.g., 20)
+- Increase bitrate
+- Use slower preset
+- Increase resolution (if source allows)
+
+*Aspect ratio is wrong:*
+- Specify only width OR height to maintain aspect ratio
+- Use `{ height: 720 }` instead of `{ width: 1280, height: 720 }`
+- Or intentionally set both for specific aspect ratio
+
+*Save to photo library fails:*
+- Check photo library permissions are granted
+- Verify `NSPhotoLibraryAddUsageDescription` in Info.plist (iOS)
+- Check `WRITE_EXTERNAL_STORAGE` permission (Android)
+- Check console for permission error messages
+
 ### Performance Tips
 
+**Trimming:**
 - Use `trim()` for batch processing without UI
 - Clean up generated files regularly with `cleanFiles()`
-- Consider file compression for large videos
+- Trimming is fast (uses copy codec, no re-encoding)
+
+**Compression:**
+- Start with presets for optimal settings
+- Use `"medium"` preset for balanced speed/quality
+- Test settings on short videos first
+- Consider device capabilities when choosing settings
+- Clean up compressed files after use
+- Show progress indicator for better UX
+
+**General:**
+- Validate files before processing to avoid errors
+- Use appropriate output formats for your use case
+- Monitor storage space for large video operations
+- Handle errors gracefully with try/catch blocks
 
 ## Credits
 
-- **Android:** Based on [Android-Video-Trimmer](https://github.com/iknow4/Android-Video-Trimmer)
+- **Android:** Based on [Android-Video-Trimmer](https://github.com/iknow4/Android-Video-Trimmer) and [React-Native-Video-Trim](https://github.com/maitrungduc1410/react-native-video-trim)
 - **iOS:** UI from [VideoTrimmerControl](https://github.com/AndreasVerhoeven/VideoTrimmerControl)
